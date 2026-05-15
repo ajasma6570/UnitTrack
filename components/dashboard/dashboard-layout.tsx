@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { TabType } from "./mobile-nav";
 import { cn } from "@/lib/utils";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export function DashboardLayout({
   onTabChange,
 }: DashboardLayoutProps) {
   const { theme, setTheme } = useTheme();
+  const { isInstallable, handleInstall } = usePwaInstall();
 
   const navItems = [
     { id: "dashboard" as TabType, label: "Dashboard", icon: LayoutDashboard },
@@ -73,6 +75,17 @@ export function DashboardLayout({
           </div>
 
           <div className="flex items-center gap-2">
+            {isInstallable && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleInstall}
+                className="hidden sm:flex items-center gap-2 rounded-full border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-400"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Install App
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

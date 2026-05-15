@@ -18,20 +18,50 @@ export async function PUT(
       )
     }
 
-    const unitUsed = bodyUnitUsed !== undefined 
-      ? parseFloat(bodyUnitUsed) 
-      : parseFloat((totalGeneration + importGrid - exportGrid).toFixed(2))
+    const entryDate = new Date(date)
+    const currentNet = parseFloat(totalGeneration) + parseFloat(importGrid) - parseFloat(exportGrid)
+    
+    let unitUsed = bodyUnitUsed !== undefined ? parseFloat(bodyUnitUsed) : 0
+    
+    if (bodyUnitUsed === undefined) {
+      const prevEntry = await prisma.solarEntry.findFirst({
+        where: { date: { lt: entryDate } },
+        orderBy: { date: 'desc' },
+      })
+
+      if (prevEntry) {
+        const prevNet = Number(prevEntry.totalGeneration) + Number(prevEntry.importGrid) - Number(prevEntry.exportGrid)
+        unitUsed = parseFloat((currentNet - prevNet).toFixed(2))
+      } else {
+        unitUsed = parseFloat(currentNet.toFixed(2))
+      }
+    }
 
     const entry = await prisma.solarEntry.update({
       where: { id },
       data: {
-        date: new Date(date),
+        date: entryDate,
         totalGeneration: parseFloat(totalGeneration),
         importGrid: parseFloat(importGrid),
         exportGrid: parseFloat(exportGrid),
         unitUsed,
       },
     })
+
+    // Update next entry if it exists to maintain consistency
+    const nextEntry = await prisma.solarEntry.findFirst({
+      where: { date: { gt: entryDate } },
+      orderBy: { date: 'asc' },
+    })
+
+    if (nextEntry) {
+      const nextNet = Number(nextEntry.totalGeneration) + Number(nextEntry.importGrid) - Number(nextEntry.exportGrid)
+      const currentNetValue = parseFloat(totalGeneration) + parseFloat(importGrid) - parseFloat(exportGrid)
+      await prisma.solarEntry.update({
+        where: { id: nextEntry.id },
+        data: { unitUsed: parseFloat((nextNet - currentNetValue).toFixed(2)) },
+      })
+    }
 
     const formattedEntry: SolarEntry = {
       id: entry.id,

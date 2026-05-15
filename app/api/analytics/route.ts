@@ -35,8 +35,36 @@ export async function GET(request: NextRequest) {
 
     // Filter monthly entries
     const monthlyEntries = yearEntries.filter(e => e.date >= monthStart)
-    const monthlyUsage = monthlyEntries.reduce((sum, e) => sum + Number(e.unitUsed), 0)
-    const monthlyGenerated = monthlyEntries.reduce((sum, e) => sum + Number(e.totalGeneration), 0)
+    
+    let monthlyUsage = 0
+    let monthlyGenerated = 0
+    
+    if (monthlyEntries.length > 0) {
+      const lastEntry = monthlyEntries[monthlyEntries.length - 1]
+      const firstEntry = monthlyEntries[0]
+      
+      const prevEntry = await prisma.solarEntry.findFirst({
+        where: { date: { lt: firstEntry.date } },
+        orderBy: { date: 'desc' },
+      })
+      
+      const lastNet = Number(lastEntry.totalGeneration) + Number(lastEntry.importGrid) - Number(lastEntry.exportGrid)
+      const lastGen = Number(lastEntry.totalGeneration)
+      
+      if (prevEntry) {
+        const prevNet = Number(prevEntry.totalGeneration) + Number(prevEntry.importGrid) - Number(prevEntry.exportGrid)
+        const prevGen = Number(prevEntry.totalGeneration)
+        monthlyUsage = lastNet - prevNet
+        monthlyGenerated = lastGen - prevGen
+      } else {
+        // If no previous entry, we can only calculate usage from the first entry we have
+        // But the first entry itself represents the usage from 'zero' to that date?
+        // Or should we just sum unitUsed for the available days?
+        // Let's use the net of the first entry as its usage for now.
+        monthlyUsage = lastNet
+        monthlyGenerated = lastGen
+      }
+    }
 
     // Weekly data (last 7 days)
     const weekAgo = new Date(today)
@@ -81,7 +109,25 @@ export async function GET(request: NextRequest) {
       usage: parseFloat(usage.toFixed(2))
     }))
 
-    const yearlyUsage = yearEntries.reduce((sum, e) => sum + Number(e.unitUsed), 0)
+    let yearlyUsage = 0
+    if (yearEntries.length > 0) {
+      const lastEntry = yearEntries[yearEntries.length - 1]
+      const firstEntry = yearEntries[0]
+      
+      const prevEntry = await prisma.solarEntry.findFirst({
+        where: { date: { lt: firstEntry.date } },
+        orderBy: { date: 'desc' },
+      })
+      
+      const lastNet = Number(lastEntry.totalGeneration) + Number(lastEntry.importGrid) - Number(lastEntry.exportGrid)
+      
+      if (prevEntry) {
+        const prevNet = Number(prevEntry.totalGeneration) + Number(prevEntry.importGrid) - Number(prevEntry.exportGrid)
+        yearlyUsage = lastNet - prevNet
+      } else {
+        yearlyUsage = lastNet
+      }
+    }
 
     const response: AnalyticsResponse = {
       todayUsage,

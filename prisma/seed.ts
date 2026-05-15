@@ -22,13 +22,13 @@ async function main() {
     // Generate realistic solar data
     const baseGeneration = 15 + Math.random() * 20 // 15-35 kWh
     const generation = parseFloat(baseGeneration.toFixed(2))
-    
+
     const baseImport = 5 + Math.random() * 8 // 5-13 kWh
     const importGrid = parseFloat(baseImport.toFixed(2))
-    
+
     const baseExport = 5 + Math.random() * 12 // 5-17 kWh
     const exportGrid = parseFloat(baseExport.toFixed(2))
-    
+
     const unitUsed = parseFloat((generation + importGrid - exportGrid).toFixed(2))
 
     dummyEntries.push({
