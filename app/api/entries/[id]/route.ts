@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { date, totalGeneration, importGrid, exportGrid } = body
+    const { date, totalGeneration, importGrid, exportGrid, unitUsed: bodyUnitUsed } = body
 
     if (!date || totalGeneration === undefined || importGrid === undefined || exportGrid === undefined) {
       return NextResponse.json(
@@ -18,7 +18,9 @@ export async function PUT(
       )
     }
 
-    const unitUsed = parseFloat((totalGeneration + importGrid - exportGrid).toFixed(2))
+    const unitUsed = bodyUnitUsed !== undefined 
+      ? parseFloat(bodyUnitUsed) 
+      : parseFloat((totalGeneration + importGrid - exportGrid).toFixed(2))
 
     const entry = await prisma.solarEntry.update({
       where: { id },

@@ -1,7 +1,13 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -9,98 +15,103 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Trash2, Edit2 } from 'lucide-react'
-import { SolarEntry } from '@/lib/types'
-import { apiClient } from '@/lib/api-client'
-import { toast } from 'sonner'
-import { DeleteConfirmationModal } from './delete-confirmation-modal'
-import { EditEntryModal } from './edit-entry-modal'
-import { Skeleton } from '@/components/ui/skeleton'
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Trash2, Edit2 } from "lucide-react";
+import { SolarEntry } from "@/lib/types";
+import { apiClient } from "@/lib/api-client";
+import { toast } from "sonner";
+import { DeleteConfirmationModal } from "./delete-confirmation-modal";
+import { EditEntryModal } from "./edit-entry-modal";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface HistoryTableProps {
-  onDataChange?: () => void
+  onDataChange?: () => void;
 }
 
 export function HistoryTable({ onDataChange }: HistoryTableProps) {
-  const [entries, setEntries] = useState<SolarEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [page, setPage] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [editingEntry, setEditingEntry] = useState<SolarEntry | null>(null)
-  const limit = 10
+  const [entries, setEntries] = useState<SolarEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editingEntry, setEditingEntry] = useState<SolarEntry | null>(null);
+  const limit = 10;
 
   const fetchEntries = async () => {
     try {
-      setIsLoading(true)
-      const result = await apiClient.getEntries(page, limit)
-      setEntries(result.entries)
-      setTotal(result.total)
+      setIsLoading(true);
+      const result = await apiClient.getEntries(page, limit);
+      setEntries(result.entries);
+      setTotal(result.total);
     } catch (error) {
-      toast.error('Failed to fetch entries')
+      toast.error("Failed to fetch entries");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchEntries()
-  }, [page])
+    fetchEntries();
+  }, [page]);
 
   const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!searchQuery.trim()) {
-      setPage(1)
-      return
+      setPage(1);
+      return;
     }
 
     try {
-      const results = await apiClient.searchEntries(searchQuery)
-      setEntries(results)
-      setPage(1)
+      const results = await apiClient.searchEntries(searchQuery);
+      setEntries(results);
+      setPage(1);
     } catch (error) {
-      toast.error('Failed to search entries')
+      toast.error("Failed to search entries");
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
     try {
-      await apiClient.deleteEntry(id)
-      toast.success('Entry deleted successfully')
-      setEntries(entries.filter((e) => e.id !== id))
-      setDeleteId(null)
-      onDataChange?.()
+      await apiClient.deleteEntry(id);
+      toast.success("Entry deleted successfully");
+      setEntries(entries.filter((e) => e.id !== id));
+      setDeleteId(null);
+      onDataChange?.();
     } catch (error) {
-      toast.error('Failed to delete entry')
+      toast.error("Failed to delete entry");
     }
-  }
+  };
 
   const handleEdit = (entry: SolarEntry) => {
-    setEditingEntry(entry)
-  }
+    setEditingEntry(entry);
+  };
 
   const handleEditSuccess = () => {
-    setEditingEntry(null)
-    fetchEntries()
-    onDataChange?.()
-  }
+    setEditingEntry(null);
+    fetchEntries();
+    onDataChange?.();
+  };
 
-  const hasMore = (page * limit) < total
+  const hasMore = page * limit < total;
 
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle>History</CardTitle>
-          <CardDescription>View and manage your solar energy records</CardDescription>
+          <CardDescription>
+            View and manage your solar energy records
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="mb-4 flex flex-col sm:flex-row gap-2">
+          <form
+            onSubmit={handleSearch}
+            className="mb-4 flex flex-col sm:flex-row gap-2"
+          >
             <Input
               placeholder="Search by year (e.g., 2024)..."
               value={searchQuery}
@@ -108,7 +119,11 @@ export function HistoryTable({ onDataChange }: HistoryTableProps) {
               className="text-sm"
             />
             <div className="flex gap-2">
-              <Button type="submit" variant="outline" className="text-sm h-9 flex-1 sm:flex-none">
+              <Button
+                type="submit"
+                variant="outline"
+                className="text-sm h-9 flex-1 sm:flex-none"
+              >
                 Search
               </Button>
               {searchQuery && (
@@ -117,9 +132,9 @@ export function HistoryTable({ onDataChange }: HistoryTableProps) {
                   variant="outline"
                   className="text-sm h-9"
                   onClick={() => {
-                    setSearchQuery('')
-                    setPage(1)
-                    fetchEntries()
+                    setSearchQuery("");
+                    setPage(1);
+                    fetchEntries();
                   }}
                 >
                   Clear
@@ -136,8 +151,13 @@ export function HistoryTable({ onDataChange }: HistoryTableProps) {
                   <TableHead className="pl-6 sm:pl-0">Date</TableHead>
                   <TableHead className="text-right">Gen</TableHead>
                   <TableHead className="text-right">Imp</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">Exp</TableHead>
+                  <TableHead className="text-right hidden sm:table-cell">
+                    Exp
+                  </TableHead>
                   <TableHead className="text-right">Used</TableHead>
+                  <TableHead className="text-right hidden md:table-cell">
+                    Created
+                  </TableHead>
                   <TableHead className="text-right pr-6 sm:pr-0">Act</TableHead>
                 </TableRow>
               </TableHeader>
@@ -145,24 +165,52 @@ export function HistoryTable({ onDataChange }: HistoryTableProps) {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell className="pl-6 sm:pl-0"><Skeleton className="h-4 w-20" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                      <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-12" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                      <TableCell className="pl-6 sm:pl-0">
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : entries.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       No entries
                     </TableCell>
                   </TableRow>
                 ) : (
                   entries.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell className="font-medium pl-6 sm:pl-0 whitespace-nowrap">{entry.date}</TableCell>
+                      <TableCell className="font-medium pl-6 sm:pl-0 whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <span>{entry.date}</span>
+                          <span className="text-[9px] text-muted-foreground md:hidden">
+                            {new Date(entry.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right text-xs">
                         {(Number(entry.totalGeneration) || 0).toFixed(1)}
                       </TableCell>
@@ -172,8 +220,16 @@ export function HistoryTable({ onDataChange }: HistoryTableProps) {
                       <TableCell className="text-right text-xs hidden sm:table-cell">
                         {(Number(entry.exportGrid) || 0).toFixed(1)}
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-green-600 text-xs">
+                      <TableCell className="text-right font-semibold text-blue-600 text-xs">
                         {(Number(entry.unitUsed) || 0).toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-right text-[10px] text-muted-foreground hidden md:table-cell">
+                        {new Date(entry.createdAt).toLocaleString([], {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </TableCell>
                       <TableCell className="text-right pr-6 sm:pr-0">
                         <div className="flex gap-1 justify-end">
@@ -249,5 +305,5 @@ export function HistoryTable({ onDataChange }: HistoryTableProps) {
         />
       )}
     </>
-  )
+  );
 }

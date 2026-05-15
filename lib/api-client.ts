@@ -13,6 +13,7 @@ export class ApiClient {
     totalGeneration: number
     importGrid: number
     exportGrid: number
+    unitUsed?: number
   }): Promise<SolarEntry> {
     const response = await fetch(`${this.baseUrl}/entries`, {
       method: 'POST',
@@ -21,12 +22,17 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to create entry')
+      const errorData = await response.json().catch(() => ({}))
+      const error = new Error(errorData.error || 'Failed to create entry')
+        ; (error as any).status = response.status
+      throw error
     }
 
     const result: ApiResponse<SolarEntry> = await response.json()
     if (!result.success || !result.data) {
-      throw new Error(result.error || 'Failed to create entry')
+      const error = new Error(result.error || 'Failed to create entry')
+        ; (error as any).status = response.status
+      throw error
     }
 
     return result.data
@@ -54,6 +60,7 @@ export class ApiClient {
       totalGeneration: number
       importGrid: number
       exportGrid: number
+      unitUsed?: number
     }
   ): Promise<SolarEntry> {
     const response = await fetch(`${this.baseUrl}/entries/${id}`, {
@@ -63,12 +70,17 @@ export class ApiClient {
     })
 
     if (!response.ok) {
-      throw new Error('Failed to update entry')
+      const errorData = await response.json().catch(() => ({}))
+      const error = new Error(errorData.error || 'Failed to update entry')
+        ; (error as any).status = response.status
+      throw error
     }
 
     const result: ApiResponse<SolarEntry> = await response.json()
     if (!result.success || !result.data) {
-      throw new Error(result.error || 'Failed to update entry')
+      const error = new Error(result.error || 'Failed to update entry')
+        ; (error as any).status = response.status
+      throw error
     }
 
     return result.data
