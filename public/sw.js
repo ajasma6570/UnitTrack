@@ -1,6 +1,7 @@
 const CACHE_NAME = 'unit-track-v1';
 const ASSETS_TO_CACHE = [
   '/',
+  '/?source=pwa',
   '/manifest.json',
   '/icon.svg'
 ];
