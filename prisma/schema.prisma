@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SolarEntry {
+  id              String   @id @default(cuid())
+  date            DateTime @unique @db.Date
+  totalGeneration Decimal  @db.Decimal(10, 2)
+  importGrid      Decimal  @db.Decimal(10, 2)
+  exportGrid      Decimal  @db.Decimal(10, 2)
+  unitUsed        Decimal  @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([date])
+}
